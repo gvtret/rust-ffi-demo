@@ -1,0 +1,17 @@
+language = "C"
+header = "/* Generated automatically by cbindgen. Do not edit. */"
+include_guard = "RUST_FFI_DEMO_H"
+pragma_once = true
+cpp_compat = true
+usize_is_size_t = true
+
+[export]
+include = ["CounterHandle", "RustFfiDemoStatus"]
+
+[parse]
+exclude = ["Counter"]
+
+[defines]
+"target_os = windows" = "RUST_FFI_DEMO_WINDOWS"
+"target_os = linux" = "RUST_FFI_DEMO_LINUX"
+"target_os = macos" = "RUST_FFI_DEMO_MACOS"
