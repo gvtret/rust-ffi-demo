@@ -44,7 +44,7 @@ Results:
 
 ## Header generation
 
-The header is generated automatically using [cbindgen](https://github.com/eqrion/cbindgen).  
+The header is generated automatically using [cbindgen](https://github.com/eqrion/cbindgen).
 `cbindgen.toml` is configured to export only:
 
 - `CounterHandle` (opaque handle)
@@ -74,6 +74,73 @@ int main() {
 
     rust_ffi_demo_counter_free(counter);
 }
+```
+
+---
+
+## Callbacks
+
+The library supports **per-counter callbacks**: each `Counter` can be associated with a callback function that is automatically fired when the counter value changes.
+
+### Rust usage
+
+```rust
+let mut c1 = Counter::new(10);
+c1.set_label(Some("alpha".into()));
+
+c1.set_callback(Some(Box::new(|val| {
+    println!("[Rust callback] Counter changed to {}", val);
+})));
+
+println!("c1 before increment: {:?}", c1);
+
+c1.increment(5);  // triggers callback
+println!("c1 after increment: {:?}", c1);
+
+let c2 = c1.clone(); // cloned without callback
+println!("c2 clone: {:?}", c2);
+```
+
+Output:
+
+```
+c1 before increment: Counter { value: 10, label: Some("alpha"), .. }
+[Rust callback] Counter changed to 15
+c1 after increment: Counter { value: 15, label: Some("alpha"), .. }
+c2 clone: Counter { value: 15, label: Some("alpha"), .. }
+```
+
+---
+
+### C++ usage
+
+Extend `main.cpp` with:
+
+```cpp
+// Our callback function
+void on_value_changed(long long value) {
+    std::cout << "[C++] Callback fired! Counter changed, new value = " << value << std::endl;
+}
+
+...
+
+// Register callback
+rust_ffi_demo_counter_set_callback(counter, on_value_changed);
+
+// Trigger events
+rust_ffi_demo_counter_increment(counter, 7);   // callback fires
+rust_ffi_demo_counter_reset(counter);          // callback fires
+```
+
+Expected output:
+
+```
+Counter value = 15
+Registering callback...
+Incrementing by 7 (should trigger callback)...
+[C++] Callback fired! Counter changed, new value = 22
+Resetting counter (should trigger callback)...
+[C++] Callback fired! Counter changed, new value = 0
 ```
 
 ---

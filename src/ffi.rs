@@ -23,6 +23,8 @@ pub struct CounterHandle {
     _private: [u8; 0],
 }
 
+pub type CounterCallback = Option<unsafe extern "C" fn(value: i64)>;
+
 thread_local! {
     static LAST_ERROR: RefCell<Option<CString>> = RefCell::new(None);
 }
@@ -197,4 +199,26 @@ pub unsafe extern "C" fn rust_ffi_demo_version() -> *const c_char {
     static VER: &str =
         concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_VERSION"), "\0");
     VER.as_ptr() as *const c_char
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rust_ffi_demo_counter_set_callback(
+    handle: *mut CounterHandle,
+    cb: CounterCallback,
+) -> RustFfiDemoStatus {
+    let c = match as_counter_mut(handle) {
+        Ok(c) => c,
+        Err(e) => return e,
+    };
+
+    if let Some(func) = cb {
+        // Wrap C function pointer in a Rust closure
+        c.set_callback(Some(Box::new(move |val| {
+            unsafe { func(val) };
+        })));
+    } else {
+        c.set_callback(None);
+    }
+
+    RustFfiDemoStatus::RustffiOk
 }

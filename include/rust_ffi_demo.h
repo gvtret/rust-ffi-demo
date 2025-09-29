@@ -28,6 +28,8 @@ typedef struct CounterHandle {
   uint8_t _private[0];
 } CounterHandle;
 
+typedef void (*CounterCallback)(int64_t value);
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -55,6 +57,9 @@ enum RustFfiDemoStatus rust_ffi_demo_counter_get_label(const struct CounterHandl
 const char *rust_ffi_demo_last_error_message(void);
 
 const char *rust_ffi_demo_version(void);
+
+enum RustFfiDemoStatus rust_ffi_demo_counter_set_callback(struct CounterHandle *handle,
+                                                          CounterCallback cb);
 
 #ifdef __cplusplus
 }  // extern "C"
